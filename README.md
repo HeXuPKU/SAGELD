@@ -1,114 +1,108 @@
-# SPA<sub>GRM</sub> introduction
+# SAGELD introduction
 
-SPA<sub>GRM</sub> is a scalable and accurate analysis framework to control for sample relatedness in large-scale genome-wide association studies (GWAS). In the paper [SPA<sub>GRM</sub>: effectively controlling for sample relatedness in large-scale genome-wide association studies of longitudinal traits](https://www.nature.com/articles/s41467-025-56669-1), we applied SPA<sub>GRM</sub> to analyze 79 longitudinal traits extracted from UK Biobank primary care data.
+SPA<sub>GRM</sub> is a genome-wide gene-environmental interaction method of longitudinal traits while controlling for sample relatedness in large-scale datasets. 
 
-**SPA<sub>GRM</sub> is now implemented in the [GRAB package](https://wenjianbi.github.io/grab.github.io/). Please click here to download.**
+**SAGELD is now implemented in the [GRAB package](https://wenjianbi.github.io/grab.github.io/). Please click here to download.**
 
-**Detailed documentation about how to use SPA<sub>GRM</sub> is available at [SPA<sub>GRM</sub> documentation](https://hexupku.github.io/SPAGRM.github.io/).**
+**Detailed documentation about how to use SAGELD is available at [SAGELD documentation](https://hexupku.github.io/SPAGRM.github.io/docs/Step%201c%20Lonigtudinal%20trand.html).**
 
-**Summary statistics of 79 longitudinal traits extracted from UK Biobank primary care data is available at [here](https://zenodo.org/records/14633793).**
+**Summary statistics of genome-wide gene-environmental interaction analyses in UK Biobank is available at [here](https://zenodo.org/records/16345203).**
 
-# About this repository
+
+# SAGELD reproducibility
 
 This repository contains: 
-1) old version of SPA<sub>GRM</sub>;
-2) manhattan and QQ plots of GWAS results for 79 longitudinal traits;
-3) materials for reproducing the experiments, including real data analyses and simulation studies.
-
-# SPA<sub>GRM</sub> reproducibility
-
-Scripts to reproduce the experiments performed for the SPA<sub>GRM</sub> manuscript:
-
-**A scalable and accurate analysis framework to control for sample relatedness in large-scale genome-wide association studies and its application to 79 longitudinal traits in UK Biobank (to be updated)**
+1) In-house implementations of several existing longitudinal data analysis methods such as GALLOP and SCEBE;
+2) Scripts to reproduce the experiments performed for the SAGELD manuscript, including real data analyses and simulation studies.
 
 ## Real data analysis
-### 1. extract longitudinal traits from UK Biobank primary care data
+### preprocess longitudinal traits
 
-In this paper, we extracted 79 longitudinal traits from UKB primary care data. The UK Biobank (UKB) primary care data (Category ID: 3001) is derived from electronic health records (EHRs) maintained by General Practitioners (GPs) from multiple data providers in England, Wales, and Scotland. As of the latest release in September 2019, approximating 230,000 UKB participants have been linked to their corresponding primary care data. This dataset includes clinical event records (Field ID: 42040) spanning over 30 years, rich in information of diagnoses, history, symptoms, lab results, and procedures. Two controlled clinical terminologies, Read version 2 (Read v2) and Clinical Terms Version 3 (CTV3) are used to record these primary clinical events. Read v2 and CTV3 clinical terms to extract 79 longitudinal traits are available at real_data\1.extract_pheno\phecode-2023-05-10XH.R, and gp_clinical data should be downloaded from UKB primary care data (Field ID: 42040).
+In this paper, we extracted 11 longitudinal traits from UKBB primary care data and combined measurements from baseline assessments.
+1) To extracted longitudinal traits from gp clinical data, users can refer to the code repository of [here](https://www.nature.com/articles/s41467-025-56669-1).
+2) To extracted drug information from gp scripts data, users can refer to the code repository of [here](https://www.nature.com/articles/s41467-025-58152-3).
+3) To extracted drug information from baseline assessments, users can refer to the code repository of [here](https://www.nature.com/articles/s41467-019-09572-5).
 
+After preparing these data, we add medication information to each observation by
 ```
-In real_data\1.extract_pheno:
-phecode-2023-05-10XH.R           # defines the Read v2 and CTV3 code terms for 79 longitudinal traits.
-real_data_extra-2023-05-01XH.R   # preprocesses the gp_clinical table.
-```
-
-### 2. preprocess longitudinal traits
-
-We used the following code to extract longitudinal traits and perform quality control (QC). QC is very important for longitudinal trait analyses. We excluded records containing implausible values and unit errors. We also filtered out outliers at the population and individual level.
-
-```
-In real_data\2.preprocess:
-XXX_preprocess.R   # extracts longitudinal traits from gp_clinical table and preprocesses each longitudinal trait.
+ProcessPhenotypes/1.Process_Drug_Information:
+antidiabetics.R           # define treatment intervals and add an binary indicator to decide whether a specific blood glucose measurement is in the treatment interval.
+antihypertensives.R       # define treatment intervals and add an binary indicator to decide whether a specific blood pressure measurement is in the treatment interval.
+statins.R                 # define treatment intervals and add an binary indicator to decide whether a specific blood lipid measurement is in the treatment interval.
 ```
 
-### 3. fit the null model via WiSER package
-
-We use the WiSER, a julia package to fit the linear mixed model for each longitudinal trait. User can also fit other models like generalized estimation equations (GEE) as diaplayed in our [online tutorials](https://hexupku.github.io/SPAGRM.github.io/).
-
+We then combined measurements from UKBB primary care data and baseline assessments by
 ```
-In real_data\3.null_fitter:
-XXX_null_fitter.jl   # fits the null model and obtains model residuals for each longitudinal trait.
+ProcessPhenotypes/2.Combine_Primary_Care_and_Baseline_Assessments:
+add_baseline_assessments.R # Combine the data from the two sources in chronological order and an binary indicator to distinguish the source of the data.
 ```
 
-### 4. GWAS analysis
-- SPA<sub>GRM</sub> analysis 
+For GxBMI analyses, we match BMI values to four cardiovascular traits by
 ```
-In real_data\4.1.SPAGRM:
-XXX_SPAGRM.R   # conducts the SPAGRM analysis with two parts: 1). pre-calculate of the joint distribution of genotypes and 2). conduct genome-wide association studies for each SNP.
-```
-- TrajGWAS analysis
-```
-In real_data\4.2.TrajGWAS:
-XXX_TrajGWAS.jl   # conducts the TrajGWAS analysis.
+ProcessPhenotypes/3.Match_BMI_to_Cardiovascular_Traits:
+add_imputed_BMI.R # Match BMI values to those measured no later than the trait observation date and no earlier than one year prior. 
 ```
 
-### 5. PRS adjustment (optional)
 
-SPA<sub>GRM</sub> can further gain statistical power through incorporating polygenic scores (PGSs) as covariates with fixed effects. It's an optional term. We employ the idea to implement a two-stage strategy, SPA<sub>GRM</sub>-PGS. In stage 1, we conduct the first round of GWAS via SPA<sub>GRM</sub> and then calculate the Leave One Chromosome Out (LOCO)-PGS based on the summary statistics. In stage 2, the LOCO-PGS is included as an additional covariate for a second round of GWAS via SPA<sub>GRM</sub>. In supplementary note, we used three longitudinal traits to demonstrate this.
+### Gxage analyses
 
+We applied SAGELD to perform Gxage analyses for 11 longitudinal traits extracted from UKBB primary care data or from combining baseline assessments via
 ```
-In real_data\5.PRS_adjustment (optional):
-1.select_index_SNPs_from_results_of_SPAGRM.R   # selects independent SNPs that pass the given p value threshold based on the GWAS results of SPAGRM.
-2.estimate_effect_sizes_XXX.jl                 # estimate the effect sizes of index SNPs via WiSER package.
-3.construct_LOCO-PRS.R                         # constructs the Leave One Chromosome Out Polygenic Risk Scores (LOCO-PRS).
-4.adjust_PRS_in_null_model_fitting_XXX.jl      # adds the PRS into the null model fitting.
-5.second_round_of_GWAS_via_SPAGRM.R            # conducts the second round of GWAS via SPAGRM.
+Gxage_analyses:
+SAGELD_XXX_trajectory.R
 ```
 
-## Simulation study
+### GxBMI analyses
+
+We applied SAGELD to perform Gxage analyses for four cardiovascular traits via
+```
+Gxage_analyses:
+SAGELD_XXX_bmi.R         # we truncated BMI values within trait-specific ranges prior to analysis to ensure an approximately linear relationship.
+```
+
+## Simulation studies
+
+### In-house implementations of several existing longitudinal data analysis methods, including
+
+```
+GALLOP_Implementation.R  # In-house implementation of GALLOP algorithm
+SCEBE_Implementation.R   # In-house implementation of SCEBE algorithm
+```
 
 ### 1. genotype simulation
 
-To mimic the genotype distribution in real data, we simulated genotype data using real genotype data of White British subjects in UK Biobank by performing gene-dropping simulations. We simulated 100,000 common variants (MAF > 0.05) and rare variants (MAF < 0.05 and MAC > 20) from genotype calls (field ID: 22418) and sequencing data (field ID: 23155), respectively. The following R script may be lengthy, but the general idea is using the real genotype file as the input of function `GRAB.SimuGMatFromGenoFile()` in GRAB package.
+To mimic the genotype distribution in real data, we simulated genotype data using real genotype data of White British subjects in UK Biobank by performing gene-dropping simulations. We simulated 100,000 common variants (MAF > 0.01) from genotype calls (field ID: 22418) and sequencing data (field ID: 23155), respectively. Users can refer to the code repository of [here](https://github.com/HeXuPKU/SPAGRM/tree/main/simulation/1.simulate_genotype) for more details.
 
 ```
-In simulation\1.simulate_genotype:
-SimulatedGenotypeUsingWES-2023-02-16XH.R   # contains R script to simulate genotypes.
+SimulateGenotype.R       # contains R script to simulate genotypes.
 ```
 
 ### 2. phenotype simulation
 
-We simulated longitudinal traits following TrajGWAS model. The number of measurements was simulated equally distributed ranging from 6 to 15. Three covariates in the mean and within-subject (WS) variability formulas were simulated as: the first one is time-invariant following a Bernoulli distribution with a probability of 0.5; the second one is time-invariant variable following the standard normal distribution, and the third one is time-varying with each measurement following an independent standard normal distribution. One time-varying covariate was simulated following an independent standard normal distribution as random slope. We additionally added random effects that followed a multivariate normal distribution related to GRM to mimic sample relatedness. We chose similar parameters as in TrajGWAS. In addition to the above, we also used the inverse-gamma distribution to generate WS variability instead of the log-normal model as in Trajgwas. We also used the GEE model with various working correlation structures to simulate longitudinal traits.
+We simulated longitudinal traits with varying numbers of observations and structures of between-subject (BS) and within-subject (WS) variabilities.
 
 ```
-In simulation\2.simulate_phenotype:
-longitudinal_pheno_simu_function-2023-02-16XH.R   # contains R script to simulate longitudinal traits as described above.
-longitudinal_pheno_simu_function-2024-04-16XH.R   # contains R script to simulate longitudinal traits using inverse-gamma distribution to generate WS variability.
-longitudinal_pheno_simu_function-2024-08-13XH.R   # contains R script to simulate longitudinal traits using GEE model with various working correlation structures.
+SimulatePhenotype.R      # contains R script to simulate longitudinal traits.
 ```
 
-### 3. empirical type I error rates
+### 3. type I error rates
 
-In each scenario, we conducted 1e9 type I error simulations using genotypes and phenotypes simulated above. 
-
-```
-In simulation\3.typeIerror, contains R scripts to conduct 1e9 type I error simulations.
-```
-
-### 4. empirical power
-
-In each scenario, we conducted 1e3 power simulations using genotypes and phenotypes simulated above. 
+We conducted 1e9 replications in scenario 1 and 1e3 replications in scenario 2 using genotypes and phenotypes simulated above. 
 
 ```
-In simulation\4.power, contains R scripts to conduct 1e3 empirical power simulations.
+typeIerror/typeIerror_quan1.R      # contains R scripts to conduct 1e9 type I error simulations for continuous environmental exposures in scenario 1 (betaG = 0 & betaGxE = 0).
+typeIerror/typeIerror_binary1.R    # contains R scripts to conduct 1e9 type I error simulations for discrete environmental exposures in scenario 1 (betaG = 0 & betaGxE = 0).
+typeIerror/typeIerror_quan2.R      # contains R scripts to conduct 1e9 type I error simulations for continuous environmental exposures in scenario 2 (betaG ≠ 0 & betaGxE = 0).
+typeIerror/typeIerror_binary2.R    # contains R scripts to conduct 1e9 type I error simulations for continuous environmental exposures in scenario 2 (betaG ≠ 0 & betaGxE = 0).
+```
+
+### 4. statistical power
+
+We conducted 1e3 replications in scenario 3 and 4 using genotypes and phenotypes simulated above. 
+
+```
+typeIerror/typeIerror_quan3.R      # contains R scripts to conduct 1e9 type I error simulations for continuous environmental exposures in scenario 3 (betaG = 0 & betaGxE ≠ 0).
+typeIerror/typeIerror_binary3.R    # contains R scripts to conduct 1e9 type I error simulations for discrete environmental exposures in scenario 3 (betaG = 0 & betaGxE ≠ 0).
+typeIerror/typeIerror_quan4.R      # contains R scripts to conduct 1e9 type I error simulations for continuous environmental exposures in scenario 4 (betaG ≠ 0 & betaGxE ≠ 0).
+typeIerror/typeIerror_binary4.R     # contains R scripts to conduct 1e9 type I error simulations for continuous environmental exposures in scenario 4 (betaG ≠ 0 & betaGxE ≠ 0).
 ```
