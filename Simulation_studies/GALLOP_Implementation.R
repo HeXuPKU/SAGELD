@@ -1,7 +1,7 @@
 
 library(lme4)
 library(glmmTMB)
-# library(optimx)
+library(optimx)
 
 # main function
 gallop = function(nullmodel = NULL,     # fitted null model from lme4.

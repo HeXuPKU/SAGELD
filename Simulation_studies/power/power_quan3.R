@@ -145,6 +145,7 @@ data.table::fwrite(Wald_results,
                    row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
 
+# cross-sectional analysis
 reduce_pheno1 = longpheno %>% group_by(SubjID) %>% arrange(SubjID) %>%
   summarize(slope = cov(pheno, Env)/var(Env), xone = first(xone), xtwo = first(xtwo), xthree = mean(xthree)) %>% 
   mutate(FID = SubjID, IID = SubjID) %>% 

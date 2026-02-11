@@ -51,3 +51,4 @@ for(i in 1:100)
   data.table::fwrite(data.frame(SNPIDsGroups[[i]]), paste0("SNPs_group", i, ".txt"), 
                      row.names = FALSE, col.names = FALSE, sep = "\t", quote = FALSE)
 }
+

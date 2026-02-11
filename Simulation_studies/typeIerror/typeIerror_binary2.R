@@ -122,6 +122,7 @@ if(nrow(GALLOP) != 0)
 }
 
 
+# cross-sectional analysis
 reduce_pheno1 = longpheno %>% group_by(SubjID) %>% arrange(SubjID) %>%
   summarize(slope = mean(pheno[Env == 1]) - mean(pheno[Env == 0]),
             xone = first(xone), xtwo = first(xtwo), xthree = mean(xthree)) %>%
