@@ -170,5 +170,5 @@ RI_RS_correlated/typeIerror_binary.R       # contains R scripts to conduct 1e3 t
 
 ### Phenotype simulation
 
-We generate a series of codes based on the SimulatePhenotype.R in the **Simulation** Simulation folder to produce longitudinal data for various sensitivity analyses.
+We generate a series of codes based on the SimulatePhenotype.R in the **Simulation** folder to produce longitudinal data for various sensitivity analyses.
 
