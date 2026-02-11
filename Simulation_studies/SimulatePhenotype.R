@@ -15,7 +15,8 @@ pheno_simu = function(nSub,                           # number of independent in
                       Geno = NULL,                    # Genotype vector, default equal NULL.
                       bVectomain = NULL,              # random effect for main effect, match the family structure.
                       bVectoGxE = NULL,               # random effect for interaction effect, match the family structure.
-                      rho = 0.8)                      # weight parameter to weight random intercept and slope effects.
+                      rho = 0.8,                      # weight parameter to weight random intercept and slope effects.
+                      hete = "medium")                # heterogeneity parameter to determine between-subject variability and within-subject variability.
 {
   if(nFam == 0){
     N = nSub
@@ -146,8 +147,31 @@ pheno_simu = function(nSub,                           # number of independent in
   
   error_term = rnorm(M, 0, 1) # Within subject variability
 
-  long_pheno = beta[1] + beta[2] * xone + beta[3] * xtwo + beta[4] * xthree + beta[5] * Env +
-    betaG * Geno + betaGxE * Geno * Env + randomeffect_main + randomeffect_GxE + polygeniceffect_main + polygeniceffect_GxE + error_term
+  # long_pheno = beta[1] + beta[2] * xone + beta[3] * xtwo + beta[4] * xthree + beta[5] * Env +
+  #   betaG * Geno + betaGxE * Geno * Env + randomeffect_main + randomeffect_GxE + polygeniceffect_main + polygeniceffect_GxE + error_term
+  
+  if(hete == "medium")
+  {
+    # between-subject variability : within-subject variability = 1.6:1
+    long_pheno = beta[1] + beta[2] * xone + beta[3] * xtwo + beta[4] * xthree + beta[5] * Env +
+      betaG * Geno + betaGxE * Geno * Env + randomeffect_main + randomeffect_GxE + polygeniceffect_main + polygeniceffect_GxE + error_term
+    
+  }else if(hete == "high")
+  {
+    # between-subject variability : within-subject variability = 2.2:0.4
+    long_pheno = beta[1] + beta[2] * xone + beta[3] * xtwo + beta[4] * xthree + beta[5] * Env +
+      betaG * Geno + betaGxE * Geno * Env + sqrt(1.75) * randomeffect_main + randomeffect_GxE + polygeniceffect_main + polygeniceffect_GxE + sqrt(0.4) * error_term
+    
+  }else if(hete == "low")
+  {
+    # between-subject variability : within-subject variability = 1:1.6
+    long_pheno = beta[1] + beta[2] * xone + beta[3] * xtwo + beta[4] * xthree + beta[5] * Env +
+      betaG * Geno + betaGxE * Geno * Env + sqrt(0.25) * randomeffect_main + randomeffect_GxE + polygeniceffect_main + polygeniceffect_GxE + sqrt(1.6) * error_term
+    
+  }else
+  {
+    stop("Currently, we only support hete = high, medium, or low.\n")
+  }
   
   covdata = data.frame(xone = xone, xtwo = xtwo, xthree = xthree, Env = Env, pheno = long_pheno) %>%
     mutate(SubjID = rep(SubjID, times = m)) %>% mutate(UNRELATED = SubjID %in% UnrelatSubjID)
