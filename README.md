@@ -128,7 +128,7 @@ heritable_Env/typeIerror_quan.R       # contains R scripts to conduct 1e3 type I
 heritable_Env/typeIerror_binary.R       # contains R scripts to conduct 1e3 type I error simulations for discrete environmental exposures in scenario 2 (betaG ≠ 0 & betaGxE = 0).
 ```
 
-### 3. Heritable environmental exposures
+### 3. Higher sample relatedness levels
 
 We generated a sample of 20,000 closely related individuals, including 2,500 nuclear families, 2,500 twins, and 2,500 identical twins. We generated longitudinal trait values ​​of different heritability for these samples: 10%, 33%, and 50%.
 
